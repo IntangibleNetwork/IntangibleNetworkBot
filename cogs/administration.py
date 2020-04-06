@@ -30,61 +30,111 @@ class Administration(commands.Cog):
 
     @commands.has_permissions(kick_members=True)
     @commands.command(name='kick')
-    async def kick(self, ctx, member : discord.Member, *, reason=None):
-        await member.kick(reason=reason)
-        await ctx.send(self.gen_msg('kicked', member, reason))
+    async def kick(self, ctx, member:discord.Member=None, *, reason=None):
+        if member is None:
+            await ctx.send('Please specify a member.')
+            return
+        try:
+            await member.kick(reason=reason)
+            await ctx.send(self.gen_msg('kicked', member, reason))
+        except Exception as e:
+            await ctx.send(f'Error: {member} could not be kicked.')
+            print(e)
 
     @commands.has_permissions(ban_members=True)
     @commands.command(name='ban')
-    async def ban(self, ctx, member : discord.Member, *, reason=None):
-        await member.ban(reason=reason)
-        await ctx.send(self.gen_msg('banned', member, reason))
+    async def ban(self, ctx, member:discord.Member=None, *, reason=None):
+        if member is None:
+            await ctx.send('Please specify a member.')
+            return
+        try:
+            await member.ban(reason=reason)
+            await ctx.send(self.gen_msg('banned', member, reason))
+        except Exception as e:
+            await ctx.send(f'Error: {member} could not be banned.')
+            print(e)
 
     @commands.has_permissions(ban_members=True)
     @commands.command(name='unban')
-    async def unban(self, ctx, *, member):
-        banned_list = await ctx.guild.bans()
+    async def unban(self, ctx, *, member=None):
+        if member is None:
+            await ctx.send('Please specify a member.')
+            return
+
         member_name, member_id = member, None
         if '#' in member:
             member_name, member_id = member.split('#')
 
-        found = False
-
-        for ban_entry in banned_list:
+        ban_list = await ctx.guild.bans()
+        for ban_entry in ban_list:
             user = ban_entry.user
             if user.name == member_name and member_id == user.discriminator or member_id == None:
-                await ctx.guild.unban(ban_entry.user)
-                await ctx.send(f'{user.mention} has been unbanned.')
-                found = True
-                break
-        
-        if not found:
-            await ctx.send(f'Could not find {member}.')
+                try:
+                    await ctx.guild.unban(user)
+                    await ctx.send(self.gen_msg('unbanned', user))
+                except Exception as e:
+                    await ctx.send(f'Error: {member} could not be unbanned.')
+                    print(e)
+                return
 
+        await ctx.send(f'Could not find {member}.')
+        
+    
     @commands.has_permissions(ban_members=True)
     @commands.command(name='tempban')
-    async def tempban(self, ctx, member : discord.Member, *, reason=None):
+    async def tempban(self, ctx, member=None, *, reason=None):
+        if member is None:
+            await ctx.send('Please specify a member.')
+            return
         await ctx.send(self.gen_msg('banned', member, reason))
 
-    @is_bot_owner_check()
+    @commands.has_permissions(manage_roles=True)
     @commands.command(name='mute')
-    async def mute(self, ctx, member : discord.Member, *, reason=None):
-        await ctx.send(self.gen_msg('muted', member, reason))
+    async def mute(self, ctx, member:discord.Member=None, *, reason=None):
+        if member is None:
+            await ctx.send('Please specify a member.')
+            return
+        try:
+            role = discord.utils.get(ctx.guild.roles, name='Muted')
+            if role is None:
+                role = await ctx.guild.create_role(name='Muted')
+                await ctx.channel.set_permissions(role, send_messages=False)
+            await member.add_roles(role)
+            await ctx.send(self.gen_msg('muted', member, reason))
+        except Exception as e:
+            await ctx.send(f'Error: {member} could not be muted.')
+            print(e)
 
-    @is_bot_owner_check()
+    @commands.has_permissions(manage_roles=True)
+    @commands.command(name='unmute')
+    async def unmute(self, ctx, member:discord.Member=None):
+        if member is None:
+            await ctx.send('Please specify a member.')
+            return
+        try:
+            await member.remove_roles(discord.utils.get(ctx.guild.roles, name='Muted'))
+            await ctx.send(self.gen_msg('unmuted', member))
+        except Exception as e:
+            await ctx.send(f'Error: {member} could not be unmuted.')
+            print(e)
+
+    @commands.has_permissions(manage_roles=True)
     @commands.command(name='tempmute')
-    async def tempmute(self, ctx, member : discord.Member, *, reason=None):
+    async def tempmute(self, ctx, member:discord.Member=None, *, reason=None):
+        if member is None:
+            await ctx.send('Please specify a member.')
+            return
         await ctx.send(self.gen_msg('muted', member, reason))
 
-    @commands.command(name='ping')
-    async def ping(self, ctx):
-        await ctx.send('Pong! {}')
+    @commands.has_permissions(manage_messages=True)
+    @commands.command(name='clear')
+    async def clear(self, ctx, member:discord.Member=None, *, reason=None):
+        pass
 
-    def gen_msg(self, verb, member, reason):
-        msg = f'{member.mention} was {verb}'
+    def gen_msg(self, verb, member, reason=None):
+        msg = f'{member.mention} was {verb}!'
         if reason != None:
-            msg += f' for {reason}'
-        msg += '!'
+            msg += f'\nReason: {reason}'
         return msg
 
 
