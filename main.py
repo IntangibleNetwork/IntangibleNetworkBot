@@ -5,7 +5,8 @@ import re
 import time
 from configparser import *
 
-from discord.ext import commands
+import discord
+from discord.ext import commands, timers
 from loguru import logger
 
 from cogs.utils.checks import is_bot_owner_check
@@ -23,6 +24,7 @@ auth = ConfigParser()
 auth.read('auth.ini')  # All my usernames and passwords for the api
 
 bot = commands.Bot(command_prefix=auth.get('discord', 'PREFIX'))
+bot.timer_manager = timers.TimerManager(bot)
 
 def load_cogs(folder):
     os.chdir(folder)

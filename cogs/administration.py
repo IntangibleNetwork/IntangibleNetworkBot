@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 
 from cogs.utils.checks import is_bot_owner_check
+from cogs.utils.time import get_time_string, get_datetime
 
 import git
 
@@ -36,7 +37,7 @@ class Administration(commands.Cog):
             return
         try:
             await member.kick(reason=reason)
-            await ctx.send(self.gen_msg('kicked', member, reason))
+            await ctx.send(self.gen_msg('kicked', member, reason=reason))
         except Exception as e:
             await ctx.send(f'Error: {member} could not be kicked.')
             print(e)
@@ -49,7 +50,7 @@ class Administration(commands.Cog):
             return
         try:
             await member.ban(reason=reason)
-            await ctx.send(self.gen_msg('banned', member, reason))
+            await ctx.send(self.gen_msg('banned', member, reason=reason))
         except Exception as e:
             await ctx.send(f'Error: {member} could not be banned.')
             print(e)
@@ -78,15 +79,28 @@ class Administration(commands.Cog):
                 return
 
         await ctx.send(f'Could not find {member}.')
-        
     
     @commands.has_permissions(ban_members=True)
     @commands.command(name='tempban')
-    async def tempban(self, ctx, member=None, *, reason=None):
+    async def tempban(self, ctx, member:discord.Member=None, time=None, *, reason=None):
         if member is None:
             await ctx.send('Please specify a member.')
             return
-        await ctx.send(self.gen_msg('banned', member, reason))
+        if time is None:
+            await ctx.send('Please specify a time.')
+            return
+        try:
+            await member.ban(reason=reason)
+            await ctx.send(self.gen_msg('banned', member, time, reason))
+            self.bot.timer_manager.create_timer('tempban', get_datetime(time), args=(ctx, member))
+        except Exception as e:
+            await ctx.send(f'Error: Something went wrong.')
+            print(e)
+
+    @commands.Cog.listener()
+    async def on_tempban(self, ctx, member):
+        await ctx.guild.unban(member)
+        await ctx.send(self.gen_msg('unbanned', member))
 
     @commands.has_permissions(manage_roles=True)
     @commands.command(name='mute')
@@ -100,7 +114,7 @@ class Administration(commands.Cog):
                 role = await ctx.guild.create_role(name='Muted')
                 await ctx.channel.set_permissions(role, send_messages=False)
             await member.add_roles(role)
-            await ctx.send(self.gen_msg('muted', member, reason))
+            await ctx.send(self.gen_msg('muted', member, reason=reason))
         except Exception as e:
             await ctx.send(f'Error: {member} could not be muted.')
             print(e)
@@ -120,19 +134,40 @@ class Administration(commands.Cog):
 
     @commands.has_permissions(manage_roles=True)
     @commands.command(name='tempmute')
-    async def tempmute(self, ctx, member:discord.Member=None, *, reason=None):
+    async def tempmute(self, ctx, member:discord.Member=None, time=None, *, reason=None):
         if member is None:
             await ctx.send('Please specify a member.')
             return
-        await ctx.send(self.gen_msg('muted', member, reason))
+        if time is None:
+            await ctx.send('Please specify a time.')
+            return
+        try:
+            role = discord.utils.get(ctx.guild.roles, name='Muted')
+            if role is None:
+                role = await ctx.guild.create_role(name='Muted')
+                await ctx.channel.set_permissions(role, send_messages=False)
+            await member.add_roles(role)
+            await ctx.send(self.gen_msg('muted', member, time, reason))
+            self.bot.timer_manager.create_timer('tempmute', get_datetime(time), args=(ctx, member))
+        except Exception as e:
+            await ctx.send(f'Error: Something went wrong.')
+            print(e)
+
+    @commands.Cog.listener()
+    async def on_tempmute(self, ctx, member):
+        await member.remove_roles(discord.utils.get(ctx.guild.roles, name='Muted'))
+        await ctx.send(self.gen_msg('unmuted', member))
 
     @commands.has_permissions(manage_messages=True)
     @commands.command(name='clear')
     async def clear(self, ctx, member:discord.Member=None, *, reason=None):
         pass
 
-    def gen_msg(self, verb, member, reason=None):
-        msg = f'{member.mention} was {verb}!'
+    def gen_msg(self, verb, member, timer=None, reason=None):
+        msg = f'{member.mention} was {verb}'
+        if timer is not None:
+            msg += f' for {get_time_string(timer)}'
+        msg += '!'
         if reason != None:
             msg += f'\nReason: {reason}'
         return msg
