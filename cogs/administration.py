@@ -160,8 +160,11 @@ class Administration(commands.Cog):
 
     @commands.has_permissions(manage_messages=True)
     @commands.command(name='clear')
-    async def clear(self, ctx, member:discord.Member=None, *, reason=None):
-        pass
+    async def clear(self, ctx, amount=20):
+        messages = []
+        async for message in ctx.message.channel.history(limit=int(amount)):
+            messages.append(message)
+        await ctx.message.channel.delete_messages(messages)
 
     def gen_msg(self, verb, member, timer=None, reason=None):
         msg = f'{member.mention} was {verb}'
