@@ -57,7 +57,7 @@ def time_to_dict(time):
         'minutes': 0,
         'seconds': 0
     }
-    for (amount, alt) in re.findall(r'([0-9]+)([A-Za-z]+)', time):
+    for (amount, alt) in re.findall(r'([0-9]+)\s*([A-Za-z]+)', time):
         unit = next(u for u in units if alt.lower() in u['alt_strings'])
         if unit:
             time_dict[unit['main_string']] = int(amount)
