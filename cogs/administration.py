@@ -24,7 +24,7 @@ class Administration(commands.Cog):
             await ctx.channel.send(embed=embed)
 
         except Exception as error:
-            errno, strerror = e.args
+            errno, strerror = error.args
             embed = discord.Embed(title='Command Error!',
                                   description=f'Git Pull Error: {errno} - {strerror}',
                                   color=0xff0007)
@@ -39,7 +39,7 @@ class Administration(commands.Cog):
         try:
             await member.kick(reason=reason)
             await ctx.send(self.gen_msg('kicked', member, reason=reason))
-        except Exception as errorrror:
+        except Exception as error:
             await ctx.send(f'Error: {member} could not be kicked.')
             logger.exception(f'Error in the !kick command. [{error}]')
 
