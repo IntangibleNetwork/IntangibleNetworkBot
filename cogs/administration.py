@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from loguru import logger
 
 from cogs.utils.checks import is_bot_owner_check
 from cogs.utils.time import get_time_string, get_datetime
@@ -15,17 +16,17 @@ class Administration(commands.Cog):
     @is_bot_owner_check()
     @commands.command(name='gitpull')
     async def git_pull(self, ctx):
-        git_dir = "./"
+        git_dir = './'
         try:
             g = git.cmd.Git(git_dir)
             g.pull()
-            embed = discord.Embed(title=":white_check_mark: Successfully pulled from repository", color=0x00df00)
+            embed = discord.Embed(title=':white_check_mark: Successfully pulled from repository', color=0x00df00)
             await ctx.channel.send(embed=embed)
 
-        except Exception as e:
+        except Exception as error:
             errno, strerror = e.args
-            embed = discord.Embed(title="Command Error!",
-                                  description=f"Git Pull Error: {errno} - {strerror}",
+            embed = discord.Embed(title='Command Error!',
+                                  description=f'Git Pull Error: {errno} - {strerror}',
                                   color=0xff0007)
             await ctx.channel.send(embed=embed)
 
@@ -38,9 +39,9 @@ class Administration(commands.Cog):
         try:
             await member.kick(reason=reason)
             await ctx.send(self.gen_msg('kicked', member, reason=reason))
-        except Exception as e:
+        except Exception as errorrror:
             await ctx.send(f'Error: {member} could not be kicked.')
-            print(e)
+            logger.exception(f'Error in the !kick command. [{error}]')
 
     @commands.has_permissions(ban_members=True)
     @commands.command(name='ban')
@@ -51,9 +52,9 @@ class Administration(commands.Cog):
         try:
             await member.ban(reason=reason)
             await ctx.send(self.gen_msg('banned', member, reason=reason))
-        except Exception as e:
+        except Exception as error:
             await ctx.send(f'Error: {member} could not be banned.')
-            print(e)
+            logger.exception(f'Error in the !ban command. [{error}]')
 
     @commands.has_permissions(ban_members=True)
     @commands.command(name='unban')
@@ -73,9 +74,9 @@ class Administration(commands.Cog):
                 try:
                     await ctx.guild.unban(user)
                     await ctx.send(self.gen_msg('unbanned', user))
-                except Exception as e:
+                except Exception as error:
                     await ctx.send(f'Error: {member} could not be unbanned.')
-                    print(e)
+                    logger.exception(f'Error in the !unban command. [{error}]')
                 return
 
         await ctx.send(f'Could not find {member}.')
@@ -93,9 +94,9 @@ class Administration(commands.Cog):
             await member.ban(reason=reason)
             await ctx.send(self.gen_msg('banned', member, time, reason))
             self.bot.timer_manager.create_timer('tempban', get_datetime(time), args=(ctx, member))
-        except Exception as e:
+        except Exception as error:
             await ctx.send(f'Error: Something went wrong.')
-            print(e)
+            logger.exception(f'Error in the !tempban command. [{error}]')
 
     @commands.Cog.listener()
     async def on_tempban(self, ctx, member):
@@ -115,9 +116,9 @@ class Administration(commands.Cog):
                 await ctx.channel.set_permissions(role, send_messages=False)
             await member.add_roles(role)
             await ctx.send(self.gen_msg('muted', member, reason=reason))
-        except Exception as e:
+        except Exception as error:
             await ctx.send(f'Error: {member} could not be muted.')
-            print(e)
+            logger.exception(f'Error in the !mute command. [{error}]')
 
     @commands.has_permissions(manage_roles=True)
     @commands.command(name='unmute')
@@ -128,9 +129,9 @@ class Administration(commands.Cog):
         try:
             await member.remove_roles(discord.utils.get(ctx.guild.roles, name='Muted'))
             await ctx.send(self.gen_msg('unmuted', member))
-        except Exception as e:
+        except Exception as error:
             await ctx.send(f'Error: {member} could not be unmuted.')
-            print(e)
+            logger.exception(f'Error in the !unmute command. [{error}]')
 
     @commands.has_permissions(manage_roles=True)
     @commands.command(name='tempmute')
@@ -149,9 +150,9 @@ class Administration(commands.Cog):
             await member.add_roles(role)
             await ctx.send(self.gen_msg('muted', member, time, reason))
             self.bot.timer_manager.create_timer('tempmute', get_datetime(time), args=(ctx, member))
-        except Exception as e:
+        except Exception as error:
             await ctx.send(f'Error: Something went wrong.')
-            print(e)
+            logger.exception(f'Error in the !tempmute command. [{error}]')
 
     @commands.Cog.listener()
     async def on_tempmute(self, ctx, member):
