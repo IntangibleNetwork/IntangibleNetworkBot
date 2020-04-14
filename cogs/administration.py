@@ -30,6 +30,8 @@ class Administration(commands.Cog):
                                   color=0xff0007)
             await ctx.channel.send(embed=embed)
 
+    # !kick [member] [reason]
+    # Kicks a member from the server
     @commands.has_permissions(kick_members=True)
     @commands.command(name='kick')
     async def kick(self, ctx, member:discord.Member=None, *, reason=None):
@@ -49,6 +51,8 @@ class Administration(commands.Cog):
             await ctx.send(embed=embed)
             logger.exception(f'Error in the !kick command. [{error}]')
 
+    # !ban [member] [reason]
+    # Bans a member from the server
     @commands.has_permissions(ban_members=True)
     @commands.command(name='ban')
     async def ban(self, ctx, member:discord.Member=None, *, reason=None):
@@ -68,6 +72,8 @@ class Administration(commands.Cog):
             await ctx.send(embed=embed)
             logger.exception(f'Error in the !ban command. [{error}]')
 
+    # !unban [member]
+    # Finds a member in the ban list and lifts their ban
     @commands.has_permissions(ban_members=True)
     @commands.command(name='unban')
     async def unban(self, ctx, *, member=None):
@@ -99,6 +105,8 @@ class Administration(commands.Cog):
 
         await ctx.send(f'Could not find {member}.')
     
+    # !tempban [member] [time] [reason]
+    # Bans a member for a specified time period
     @commands.has_permissions(ban_members=True)
     @commands.command(name='tempban')
     async def tempban(self, ctx, member:discord.Member=None, time=None, *, reason=None):
@@ -130,6 +138,8 @@ class Administration(commands.Cog):
         await ctx.guild.unban(member)
         await ctx.send(embed=self.gen_msg('unbanned', member))
 
+    # !mute [member] [reason]
+    # Prevents a member from sending messages
     @commands.has_permissions(manage_roles=True)
     @commands.command(name='mute')
     async def mute(self, ctx, member:discord.Member=None, *, reason=None):
@@ -153,6 +163,8 @@ class Administration(commands.Cog):
             await ctx.send(embed=embed)
             logger.exception(f'Error in the !mute command. [{error}]')
 
+    # !unmute [member]
+    # Removes a member's mute role
     @commands.has_permissions(manage_roles=True)
     @commands.command(name='unmute')
     async def unmute(self, ctx, member:discord.Member=None):
@@ -172,6 +184,8 @@ class Administration(commands.Cog):
             await ctx.send(embed=embed)
             logger.exception(f'Error in the !unmute command. [{error}]')
 
+    # !tempmute [member] [time] [reason]
+    # Mutes a member for a specified period of time
     @commands.has_permissions(manage_roles=True)
     @commands.command(name='tempmute')
     async def tempmute(self, ctx, member:discord.Member=None, time=None, *, reason=None):
@@ -207,6 +221,8 @@ class Administration(commands.Cog):
         await member.remove_roles(discord.utils.get(ctx.guild.roles, name='Muted'))
         await ctx.send(embed=self.gen_msg('unmuted', member))
 
+    # !clear [amount]
+    # Clears a specified amount of messages (default is 20)
     @commands.has_permissions(manage_messages=True)
     @commands.command(name='clear')
     async def clear(self, ctx, amount=20):
