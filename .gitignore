@@ -1,0 +1,5 @@
+auth.ini
+__pycache__
+*.log
+store.db
+store.db-journal
