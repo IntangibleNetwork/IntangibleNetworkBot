@@ -9,7 +9,7 @@ class ReactionRoles(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # !rr create "[title]" [emote1] [role1] [emote2] [role2] ...
+    # !rrcreate "[title]" [emote1] [role1] [emote2] [role2] ...
     # Creates a reaction role menu with multiple emote-role pairs
     @commands.has_permissions(manage_roles=True)
     @commands.command(name='rrcreate')
@@ -32,6 +32,16 @@ class ReactionRoles(commands.Cog):
         sql_execute(sql, vals)
 
         await ctx.send(embed=discord.Embed(title=f'Your message ID is: {message.id}', color=discord.Color.green()))
+
+    # !rrremove [message_id]
+    # Removes a reaction role menu by message id
+    @commands.has_permissions(manage_roles=True)
+    @commands.command(name='rrremove')
+    async def rrremove(self, ctx, message_id):
+        message = await ctx.channel.fetch_message(message_id)
+        await message.delete()
+
+        sql_execute('DELETE FROM reactions WHERE message_id=? AND channel_id=?', [(message_id), (ctx.channel.id)])
 
 
 def setup(bot):
