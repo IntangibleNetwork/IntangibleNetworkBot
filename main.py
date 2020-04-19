@@ -12,16 +12,16 @@ from loguru import logger
 from cogs.utils.checks import is_bot_owner_check
 
 
+auth = ConfigParser()
+auth.read('auth.ini')  # All my usernames and passwords for the api
+
 #initiate logger test
-logger.add(f"file_{str(time.strftime('%Y%m%d-%H%M%S'))}.log", rotation="10 MB")
+if auth.get('discord', 'LOG_FILES') == 1:
+    logger.add(f"file_{str(time.strftime('%Y%m%d-%H%M%S'))}.log", rotation="10 MB")
 
 logger.debug("====== Starting Bot ======")
 logger.debug("\t Version: 1.0")
 logger.debug("\t Author: J_C___#8947")
-
-
-auth = ConfigParser()
-auth.read('auth.ini')  # All my usernames and passwords for the api
 
 bot = commands.Bot(command_prefix=auth.get('discord', 'PREFIX'))
 bot.timer_manager = timers.TimerManager(bot)

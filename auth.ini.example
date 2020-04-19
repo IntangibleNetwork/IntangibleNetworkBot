@@ -1,3 +1,4 @@
 [discord]
 TOKEN=
 PREFIX=!
+LOG_FILES=1
